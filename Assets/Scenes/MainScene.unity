@@ -595,8 +595,8 @@ RectTransform:
   m_LocalScale: {x: 3.6179714, y: 4.7056527, z: 3.1600003}
   m_ConstrainProportionsScale: 1
   m_Children:
-  - {fileID: 2023339823}
   - {fileID: 1301311925}
+  - {fileID: 2023339823}
   m_Father: {fileID: 1673765203}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -2891,6 +2891,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Script.Environment.NPCSpawner
   npcPrefabs:
   - {fileID: 6960773289196163903, guid: 89b6691f35733c944addd2b345f3f4bf, type: 3}
+  - {fileID: 3083562821753173767, guid: 7544df851ecf5e64fad7f2e95607a1aa, type: 3}
+  - {fileID: 5318330250561558053, guid: d36bb5058a754ec4583aa7519f38d709, type: 3}
   spawnCount: 1
   spawnInterval: 10
   spawnOnce: 1
@@ -8275,7 +8277,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e81e0ec66e37cc4ba6096bbfc196139, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Script.Environment.DayCycleManager
-  workingDurationMinutes: 3
+  workingDurationMinutes: 5
   dayText: {fileID: 818698849}
   timeRemainingText: {fileID: 1659669844}
   timeOfDay: 0
@@ -8683,7 +8685,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1301311925}
-  - component: {fileID: 1301311926}
   m_Layer: 0
   m_Name: Fill Area
   m_TagString: Untagged
@@ -8708,22 +8709,9 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.25}
   m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: 7, y: 4.2}
+  m_AnchoredPosition: {x: 7.5, y: 4.2}
   m_SizeDelta: {x: -20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!210 &1301311926
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1301311924}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_SortAtRoot: 0
-  m_Sort3DAs2D: 0
 --- !u!4 &1308618654 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1131579832956981314, guid: 2810c3d40bc00604abad5b6e8fbd28d1, type: 3}
@@ -11509,15 +11497,64 @@ MonoBehaviour:
   multiplierText: {fileID: 721136070}
   glorySlider: {fileID: 123030423}
   multiplierColors:
-  - {r: 0, g: 1, b: 0.038882256, a: 0}
-  - {r: 1, g: 0.8931105, b: 0, a: 0}
-  - {r: 1, g: 0.57096726, b: 0, a: 0}
-  - {r: 1, g: 0, b: 0, a: 0}
-  - {r: 1, g: 0, b: 0.543159, a: 0}
-  - {r: 0.57353735, g: 0, b: 1, a: 0}
-  - {r: 0, g: 0.43849897, b: 1, a: 0}
-  - {r: 0, g: 0.85727143, b: 1, a: 0}
+  - {r: 0, g: 1, b: 0.038882256, a: 1}
+  - {r: 1, g: 0.8931105, b: 0, a: 1}
+  - {r: 1, g: 0.57096726, b: 0, a: 1}
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 1, g: 0, b: 0.543159, a: 1}
+  - {r: 0.57353735, g: 0, b: 1, a: 1}
+  - {r: 0, g: 0.43849897, b: 1, a: 1}
+  - {r: 0, g: 0.85727143, b: 1, a: 1}
   gloryFillImage: {fileID: 0}
+--- !u!1 &1802531314
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1802531316}
+  - component: {fileID: 1802531315}
+  m_Layer: 0
+  m_Name: NavMesh Modifier Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1802531315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802531314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35e95dc5ff2b64380880dd7ac5922847, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifierVolume
+  m_SerializedVersion: 0
+  m_Size: {x: 4, y: 3, z: 4}
+  m_Center: {x: 0, y: 1, z: 0}
+  m_Area: 1
+  m_AffectedAgents: ffffffff
+--- !u!4 &1802531316
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1802531314}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.43, y: 1.133, z: -0.26161}
+  m_LocalScale: {x: 4.0663943, y: 1, z: 3.8424}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1810233397
 GameObject:
   m_ObjectHideFlags: 0
@@ -14187,3 +14224,4 @@ SceneRoots:
   - {fileID: 1007345207}
   - {fileID: 948402655}
   - {fileID: 649675074}
+  - {fileID: 1802531316}
