@@ -2677,6 +2677,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 995f442a05c61064bb36ef9f30ba36c8, type: 3}
+--- !u!114 &2088692189 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6552144152682636976, guid: 9e0ac9d0e5588094e8fdf9d219753068, type: 3}
+  m_PrefabInstance: {fileID: 2109149426}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2964b36442df7734f8eb7e1ad2256470, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Script.UI.SaveSlotUI
 --- !u!4 &2103887512 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7112876241940326051, guid: 995f442a05c61064bb36ef9f30ba36c8, type: 3}
@@ -2793,14 +2804,14 @@ PrefabInstance:
     - target: {fileID: 8667803638527567938, guid: 9e0ac9d0e5588094e8fdf9d219753068, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 943423965}
+      objectReference: {fileID: 2088692189}
     - target: {fileID: 8667803638527567938, guid: 9e0ac9d0e5588094e8fdf9d219753068, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnLoadGameClicked
+      value: OnLoadClicked
       objectReference: {fileID: 0}
     - target: {fileID: 8667803638527567938, guid: 9e0ac9d0e5588094e8fdf9d219753068, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Script.UI.MainMenuController, Assembly-CSharp
+      value: Script.UI.SaveSlotUI, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
