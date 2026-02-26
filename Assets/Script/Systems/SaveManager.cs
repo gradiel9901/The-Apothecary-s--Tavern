@@ -21,6 +21,10 @@ namespace Script.Systems
                 return;
             }
             Instance = this;
+            // IMPORTANT: DontDestroyOnLoad only works on ROOT GameObjects.
+            // If SaveManager is nested under a parent (like "Managers"), we must
+            // detach it first so it can survive scene transitions.
+            transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
         }
 
@@ -104,11 +108,16 @@ namespace Script.Systems
 
         public void LoadGame(int slotId)
         {
+            StartCoroutine(LoadGameRoutine(slotId));
+        }
+
+        private IEnumerator LoadGameRoutine(int slotId)
+        {
             string savePath = GetSaveFilePath(slotId);
             if (!File.Exists(savePath))
             {
                 Debug.LogWarning($"[SaveManager] No save file found for Slot {slotId}");
-                return;
+                yield break;
             }
 
             string json = File.ReadAllText(savePath);
@@ -116,9 +125,32 @@ namespace Script.Systems
 
             Debug.Log($"[SaveManager] Loading Game from Slot {slotId}...");
 
-            if (ShopManager.Instance != null) ShopManager.Instance.LoadFromSave(data);
-            if (DayCycleManager.Instance != null) DayCycleManager.Instance.LoadFromSave(data);
-            if (EventManager.Instance != null) EventManager.Instance.LoadFromSave(data);
+            // 1. Load the main scene asynchronously
+            UnityEngine.AsyncOperation asyncLoad = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("MainScene");
+            
+            // 2. Wait until the asynchronous scene fully loads
+            while (asyncLoad != null && !asyncLoad.isDone)
+            {
+                yield return null;
+            }
+
+            // CRITICAL FIX: The new scene is loaded, but Unity hasn't run Start() on the new objects yet!
+            // If we apply data now, their Start() methods will just overwrite our loaded data with defaults (0 gold, Day 1).
+            // We must wait one more frame for them to initialize.
+            yield return null; 
+            yield return new WaitForEndOfFrame();
+
+            // 3. Now the scene is loaded, and Start() has fired! The old Singletons from the visual MainMenu might be destroyed or invalid.
+            // We need to find the specific managers that were just created inside the MainScene.
+            
+            ShopManager shopManager = FindFirstObjectByType<ShopManager>();
+            if (shopManager != null) shopManager.LoadFromSave(data);
+
+            DayCycleManager dayManager = FindFirstObjectByType<DayCycleManager>();
+            if (dayManager != null) dayManager.LoadFromSave(data);
+
+            EventManager eventManager = FindFirstObjectByType<EventManager>();
+            if (eventManager != null) eventManager.LoadFromSave(data);
 
             PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
             if (player != null)
@@ -131,6 +163,9 @@ namespace Script.Systems
                 player.transform.rotation = data.GetPlayerRotation();
                 
                 if (cc != null) cc.enabled = true;
+                
+                // Ensure cursor is locked for gameplay
+                player.TogglePlayerInput(true);
             }
 
             Debug.Log($"[SaveManager] Load Complete!");
