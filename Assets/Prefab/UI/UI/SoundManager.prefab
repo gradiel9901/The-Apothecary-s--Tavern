@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &9119347447421639565
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6372536082002419452}
+  - component: {fileID: 2553508032190031637}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6372536082002419452
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9119347447421639565}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2553508032190031637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9119347447421639565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afa11199dde52bd4b98c7e7f5cc54f5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Script.Systems.AudioManager
+  movementSource: {fileID: 0}
+  sfxSource: {fileID: 0}
+  bgmSource: {fileID: 0}
+  bubblingSource: {fileID: 0}
+  bgmClip: {fileID: 8300000, guid: 8b60820dbcd21634ca2e3329d68b20f2, type: 3}
+  walkClip: {fileID: 8300000, guid: 598d9c8e4a7171a4db5c0c76ce9f947b, type: 3}
+  runClip: {fileID: 8300000, guid: 4276be6386382ef4e8f1277db0657c6d, type: 3}
+  npcTalkClip: {fileID: 8300000, guid: c90cd248b50d7274d8f678ededa3fdcb, type: 3}
+  mixHitClip: {fileID: 8300000, guid: 78c067e5e11161949a6c1a5f1be70c4d, type: 3}
+  mixCritClip: {fileID: 8300000, guid: b298d72ab68916643b3bf85c05684a68, type: 3}
+  mixMissClip: {fileID: 0}
+  bubblingClip: {fileID: 8300000, guid: 5e5dd56e1624dad4aa130058b221a1ad, type: 3}
+  doorOpenClip: {fileID: 8300000, guid: 4997e6259f97ae3459bd0cc558f61b51, type: 3}
+  doorCloseClip: {fileID: 8300000, guid: 1ed7798f93343674bbb38fafdbb99a74, type: 3}
+  itemPickupClip: {fileID: 8300000, guid: b5b282b30d8d81148951e199c5a54e17, type: 3}
+  itemDropClip: {fileID: 8300000, guid: b5b282b30d8d81148951e199c5a54e17, type: 3}
+  buttonClickClip: {fileID: 8300000, guid: 481a83dc546341c44a9744c7e6721477, type: 3}

@@ -80,6 +80,7 @@ namespace Script.UI
 
         public void BuyItem(int index)
         {
+            Script.Systems.TutorialManager.NotifyStep(Script.Systems.TutorialManager.TutorialEvent.ItemBought);
             if (index < 0 || index >= availableItems.Length)
             {
                 Debug.LogError("Invalid Shop Item Index!");
@@ -151,3 +152,4 @@ namespace Script.UI
         }
     }
 }
+

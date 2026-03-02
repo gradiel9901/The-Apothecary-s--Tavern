@@ -1,5 +1,6 @@
 using System.Collections;
 using Script.Player;
+using Script.Systems;
 using UnityEngine;
 using UnityEngine.AI;
 using Unity.AI.Navigation;
@@ -69,9 +70,11 @@ namespace Script.Environment
 
             _isOpen = !_isOpen;
 
-            // Trigger Day Cycle logic
+            // Trigger Day Cycle and Audio logic
             if (_isOpen)
             {
+                if (AudioManager.Instance != null) AudioManager.Instance.PlayDoorOpen();
+                
                 if (DayCycleManager.Instance != null)
                 {
                     DayCycleManager.Instance.StartWorkingHours();
@@ -79,6 +82,8 @@ namespace Script.Environment
             }
             else
             {
+                if (AudioManager.Instance != null) AudioManager.Instance.PlayDoorClose();
+                
                 if (DayCycleManager.Instance != null)
                 {
                     DayCycleManager.Instance.EndDay();

@@ -92,6 +92,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3d67aa0ee95620445beb5b4bfb33dbfa, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5382746110701062446}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3d67aa0ee95620445beb5b4bfb33dbfa, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3910160756203476378}
   m_SourcePrefab: {fileID: 100100000, guid: 3d67aa0ee95620445beb5b4bfb33dbfa, type: 3}
 --- !u!1 &6960773289196163903 stripped
 GameObject:
@@ -155,8 +158,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Script.Environment.NPC
   npcName: Traveler
-  availableOrders:
-  - {fileID: 11400000, guid: 1e3de8a6e627625479571c29b797ab6e, type: 2}
+  availableOrders: []
+  waitTimeInLine: 120
+  waitTimeForPotion: 60
   counterWaypointName: Player Counter
   exitWaypointName: NPC Exit
   stoppingDistance: 1.5
@@ -194,3 +198,22 @@ CapsuleCollider:
   m_Height: 1.7669663
   m_Direction: 1
   m_Center: {x: 0, y: 0.97830534, z: 0}
+--- !u!114 &3910160756203476378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6960773289196163903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adb4189746917884dbd174dd1b9a3f02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Script.Environment.NPCPatienceMeter
+  yOffset: 2.2
+  canvasScale: {x: 0.01, y: 0.01, z: 0.01}
+  barSize: {x: 100, y: 15}
+  backgroundColor: {r: 0.3679245, g: 0.3679245, b: 0.3679245, a: 0.5}
+  fillColor: {r: 0, g: 1, b: 0, a: 1}
+  warningColor: {r: 1, g: 0, b: 0, a: 1}
+  warningThreshold: 0.25

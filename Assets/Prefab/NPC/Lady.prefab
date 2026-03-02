@@ -76,6 +76,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 60897f7cdf8403746a98f88a6babea44, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5595004156465565747}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 60897f7cdf8403746a98f88a6babea44, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1548544809108133341}
   m_SourcePrefab: {fileID: 100100000, guid: 60897f7cdf8403746a98f88a6babea44, type: 3}
 --- !u!1 &3083562821753173767 stripped
 GameObject:
@@ -162,8 +165,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Script.Environment.NPC
   npcName: Maiden
-  availableOrders:
-  - {fileID: 11400000, guid: 90360df3e5fac794ba6b165e1a0b9a5c, type: 2}
+  availableOrders: []
+  waitTimeInLine: 120
+  waitTimeForPotion: 60
   counterWaypointName: Player Counter
   exitWaypointName: NPC Exit
   stoppingDistance: 1.5
@@ -178,3 +182,22 @@ MonoBehaviour:
   walkAnim: Walking
   talkAnim: Talking
   animTransitionTime: 0.15
+--- !u!114 &1548544809108133341
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3083562821753173767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adb4189746917884dbd174dd1b9a3f02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Script.Environment.NPCPatienceMeter
+  yOffset: 2.2
+  canvasScale: {x: 0.01, y: 0.01, z: 0.01}
+  barSize: {x: 100, y: 15}
+  backgroundColor: {r: 0.3679245, g: 0.3679245, b: 0.3679245, a: 0.5}
+  fillColor: {r: 0, g: 1, b: 0, a: 1}
+  warningColor: {r: 1, g: 0, b: 0, a: 1}
+  warningThreshold: 0.25

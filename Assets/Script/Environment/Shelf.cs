@@ -9,7 +9,10 @@ namespace Script.Environment
         [Header("Shelf Settings")]
         [SerializeField] private ItemType itemType;
         [SerializeField] private GameObject itemPrefab;
+        [Tooltip("The absolute maximum number of items the shelf can hold.")]
         [SerializeField] private int maxItems = 10;
+        [Tooltip("The starting/current stock of the shelf. If you want an empty shelf, set this to 0.")]
+        [SerializeField] private int currentStock = 10;
 
         [Header("Visual Settings")]
         [Tooltip("If checked, use Uniform Scale. If unchecked, use Vector3 Scale.")]
@@ -39,15 +42,14 @@ namespace Script.Environment
         [Tooltip("The local offset applied when moving to a new row/shelf level (e.g. going down in Y).")]
         [SerializeField] private Vector3 newRowOffset = new Vector3(0, -0.6f, 0);
 
-        private int _currentItems;
         private List<GameObject> _spawnedVisualItems = new List<GameObject>();
 
         public ItemType GetItemType() => itemType;
-        public int GetCurrentItems() => _currentItems;
+        public int GetCurrentItems() => currentStock;
 
         private void Awake()
         {
-            _currentItems = maxItems;
+            currentStock = Mathf.Clamp(currentStock, 0, maxItems);
             SpawnVisualItems();
         }
 
@@ -58,7 +60,7 @@ namespace Script.Environment
             Vector3 currentSpacing = manualSpacingOffset;
             Vector3 finalScale = constrainProportions ? new Vector3(uniformScale, uniformScale, uniformScale) : vectorScale;
 
-            for (int i = 0; i < maxItems; i++)
+            for (int i = 0; i < currentStock; i++)
             {
                 // Instantiate internal visual copy
                 GameObject visualItem = Instantiate(itemPrefab, transform);
@@ -132,11 +134,11 @@ namespace Script.Environment
 
         public void Interact(PlayerInteraction player)
         {
-            if (_currentItems > 0)
+            if (currentStock > 0)
             {
-                Debug.Log($"Picked up {itemType} from Shelf. Items left: {_currentItems - 1}");
+                Debug.Log($"Picked up {itemType} from Shelf. Items left: {currentStock - 1}");
                 player.PickUpItem(itemType, itemPrefab);
-                _currentItems--;
+                currentStock--;
 
                 // Destroy the last visual item in the list
                 if (_spawnedVisualItems.Count > 0)
@@ -154,10 +156,10 @@ namespace Script.Environment
 
         public void RemoveItems(int amount)
         {
-            if (_currentItems <= 0) return;
+            if (currentStock <= 0) return;
 
-            int amountToRemove = Mathf.Min(amount, _currentItems);
-            _currentItems -= amountToRemove;
+            int amountToRemove = Mathf.Min(amount, currentStock);
+            currentStock -= amountToRemove;
 
             for (int i = 0; i < amountToRemove; i++)
             {
@@ -172,13 +174,14 @@ namespace Script.Environment
 
         public void InteractSack(PlayerInteraction player, ItemSack sack)
         {
+            Script.Systems.TutorialManager.NotifyStep(Script.Systems.TutorialManager.TutorialEvent.ShelfFilled);
             if (sack.itemType != this.itemType)
             {
                 Debug.Log($"[Shelf] Wrong item type! Shelf needs {itemType}, but Sack has {sack.itemType}.");
                 return;
             }
 
-            int spaceLeft = maxItems - _currentItems;
+            int spaceLeft = maxItems - currentStock;
             if (spaceLeft <= 0)
             {
                 Debug.Log("[Shelf] Shelf is already full!");
@@ -188,10 +191,10 @@ namespace Script.Environment
             // Figure out how much we can actually take from the sack
             int amountToTake = Mathf.Min(spaceLeft, sack.amount);
             
-            _currentItems += amountToTake;
+            currentStock += amountToTake;
             sack.amount -= amountToTake;
 
-            Debug.Log($"[Shelf] Restocked {amountToTake} {itemType}. Shelf now at {_currentItems}/{maxItems}. Sack has {sack.amount} left.");
+            Debug.Log($"[Shelf] Restocked {amountToTake} {itemType}. Shelf now at {currentStock}/{maxItems}. Sack has {sack.amount} left.");
 
             // Clear visually so we can rebuild it cleanly
             foreach (var item in _spawnedVisualItems)
@@ -209,3 +212,4 @@ namespace Script.Environment
         }
     }
 }
+

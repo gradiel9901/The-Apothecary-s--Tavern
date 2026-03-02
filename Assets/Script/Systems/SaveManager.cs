@@ -209,5 +209,16 @@ namespace Script.Systems
             string json = File.ReadAllText(savePath);
             return JsonUtility.FromJson<GameSaveData>(json); // Will be partially loaded just to read the date and glory text
         }
+        /// <summary>Returns true if any save slot file exists on disk.</summary>
+        public bool AnySaveExists()
+        {
+            for (int i = 0; i <= 2; i++)
+            {
+                string path = System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, SAVE_FILE_NAME + i + ".json");
+                if (System.IO.File.Exists(path)) return true;
+            }
+            return false;
+        }
+
     }
 }

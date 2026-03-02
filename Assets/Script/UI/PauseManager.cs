@@ -1,6 +1,7 @@
 using Script.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace Script.UI
 {
@@ -135,6 +136,14 @@ namespace Script.UI
         {
             HideAllMenus();
             if (settingsMenuPanel != null) settingsMenuPanel.SetActive(true);
+        }
+
+        public void QuitToMainMenu()
+        {
+            // Restore time scale before leaving the scene
+            Time.timeScale = 1f;
+            Debug.Log("[PauseManager] Quitting to Main Menu...");
+            SceneManager.LoadScene("MainMenu");
         }
     }
 }

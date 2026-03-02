@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Script.Environment;
+using Script.Systems;
 
 namespace Script.Player
 {
@@ -155,7 +156,17 @@ namespace Script.Player
 
         private void HandleMovement()
         {
-            if (_moveInput.sqrMagnitude == 0) return;
+            if (_moveInput.sqrMagnitude == 0)
+            {
+                if (AudioManager.Instance != null) AudioManager.Instance.StopMovement();
+                return;
+            }
+
+            // Audio Call
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayMovement(_isSprinting);
+            }
 
             // Apply EventManager slow debuff if active
             float eventSpeedMultiplier = EventManager.Instance != null ? EventManager.Instance.GetPlayerSpeedMultiplier() : 1.0f;

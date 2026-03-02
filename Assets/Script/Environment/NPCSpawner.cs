@@ -9,6 +9,23 @@ namespace Script.Environment
     /// Listens for a door opening, then spawns NPC prefabs and immediately injects
     /// scene-specific waypoints into them (prefabs can't hold scene references themselves).
     /// </summary>
+    /// <summary>
+    /// Defines which PotionRecipes NPCs can order on a given day range.
+    /// Add entries in ascending day order. The first matching range wins.
+    /// </summary>
+    [System.Serializable]
+    public class DayOrderPool
+    {
+        [Tooltip("First day this pool is active (inclusive).")]
+        public int fromDay = 1;
+
+        [Tooltip("Last day this pool is active (inclusive). Set 999 for no end.")]
+        public int toDay = 999;
+
+        [Tooltip("Potion recipes NPCs can randomly order during this range.")]
+        public List<PotionRecipe> availableOrders;
+    }
+
     public class NPCSpawner : MonoBehaviour
     {
         [Header("Spawn Settings")]
@@ -34,6 +51,28 @@ namespace Script.Environment
         [SerializeField] private GameObject exitWaypoint;
 
         private bool _hasSpawned = false;
+
+        [Header("Day-Based Order Pools")]
+        [Tooltip("Which potions NPCs can request per day range. Leave empty to use each NPC prefab's own list.")]
+        [SerializeField] private DayOrderPool[] dayOrderPools;
+
+        /// <summary>
+        /// Returns the order list for the current game day, or null to use NPC defaults.
+        /// </summary>
+        private List<PotionRecipe> GetOrdersForCurrentDay()
+        {
+            if (dayOrderPools == null || dayOrderPools.Length == 0) return null;
+            int today = DayCycleManager.Instance != null ? DayCycleManager.Instance.CurrentDay : 1;
+            foreach (DayOrderPool pool in dayOrderPools)
+            {
+                if (today >= pool.fromDay && today <= pool.toDay)
+                {
+                    if (pool.availableOrders != null && pool.availableOrders.Count > 0)
+                        return pool.availableOrders;
+                }
+            }
+            return null;
+        }
 
         private void OnEnable()
         {
@@ -62,10 +101,6 @@ namespace Script.Environment
         {
             // First wave of spawns immediately upon opening the door
             int initialSpawns = spawnCount;
-            if (ShopManager.Instance != null)
-            {
-                initialSpawns *= ShopManager.Instance.CurrentMultiplier;
-            }
 
             // Apply EventManager burst if active
             if (EventManager.Instance != null)
@@ -73,7 +108,17 @@ namespace Script.Environment
                 initialSpawns *= EventManager.Instance.GetBurstSpawnAmount();
             }
 
+            // Calculate Base Interval
             float currentSpawnInterval = spawnInterval;
+            
+            // 1. Glory Multiplier: Higher Glory = Faster Spawns (Divide Interval)
+            if (ShopManager.Instance != null)
+            {
+                float gloryMultiplier = Mathf.Max(1f, ShopManager.Instance.CurrentMultiplier);
+                currentSpawnInterval /= gloryMultiplier;
+            }
+
+            // 2. Event Multiplier
             if (EventManager.Instance != null)
             {
                 currentSpawnInterval *= EventManager.Instance.GetSpawnIntervalMultiplier();
@@ -98,17 +143,23 @@ namespace Script.Environment
                 yield return new WaitForSeconds(currentSpawnInterval); // Wait before dropping the next customer/wave 
                 
                 // Recalculate intervals and stats in case they change mid-day
-                if (EventManager.Instance != null)
-                {
-                    currentSpawnInterval = spawnInterval * EventManager.Instance.GetSpawnIntervalMultiplier();
-                }
-
-                // Recalculate spawn count in case the multiplier leveled up mid-day
-                int currentSpawns = spawnCount;
+                currentSpawnInterval = spawnInterval;
+                
+                // 1. Glory Multiplier: Higher Glory = Faster Spawns (Divide Interval)
                 if (ShopManager.Instance != null)
                 {
-                    currentSpawns *= ShopManager.Instance.CurrentMultiplier;
+                    float gloryMultiplier = Mathf.Max(1f, ShopManager.Instance.CurrentMultiplier);
+                    currentSpawnInterval /= gloryMultiplier;
                 }
+
+                // 2. Event Multiplier
+                if (EventManager.Instance != null)
+                {
+                    currentSpawnInterval *= EventManager.Instance.GetSpawnIntervalMultiplier();
+                }
+
+                // Recalculate spawn count (only modified by burst events now)
+                int currentSpawns = spawnCount;
                 if (EventManager.Instance != null)
                 {
                     currentSpawns *= EventManager.Instance.GetBurstSpawnAmount();
@@ -138,11 +189,18 @@ namespace Script.Environment
 
             GameObject npc = Instantiate(prefab, transform.position, transform.rotation);
 
-            // The new NPC script perfectly auto-finds its waypoints by name
+            // NPC script perfectly auto-finds its waypoints by name
             NPC controller = npc.GetComponent<NPC>();
             if (controller == null)
             {
                 Debug.LogWarning($"[NPCSpawner] Spawned prefab '{prefab.name}' has no NPC component!", this);
+            }
+            else
+            {
+                // Inject the day-filtered order pool before Start() fires
+                var dayOrders = GetOrdersForCurrentDay();
+                if (dayOrders != null)
+                    controller.SetOrders(dayOrders);
             }
 
             Debug.Log($"[NPCSpawner] Spawned {prefab.name} at {gameObject.name}.");

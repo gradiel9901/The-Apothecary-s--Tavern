@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq; // Added for Linq grouping
 using Script.Player;
+using Script.Systems;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -22,6 +23,12 @@ namespace Script.Environment
         [SerializeField] private string npcName = "Traveler";
         [Tooltip("The NPC will randomly pick one recipe from this list when spawned.")]
         [SerializeField] private List<PotionRecipe> availableOrders;
+
+        [Header("Patience Settings")]
+        [Tooltip("Time in seconds the NPC waits in line before leaving (Default: 180s = 3 mins)")]
+        [SerializeField] private float waitTimeInLine = 180f;
+        [Tooltip("Time in seconds the NPC waits for the potion after ordering before leaving (Default: 60s = 1 min)")]
+        [SerializeField] private float waitTimeForPotion = 60f;
 
         [Header("Navigation Waypoints")]
         [Tooltip("Name of the scene GameObject where the NPC stands to order.")]
@@ -66,6 +73,9 @@ namespace Script.Environment
         private string _currentAnimState;
         private PlayerInteraction _interactingPlayer;
 
+        // Patience Timer
+        private float _currentWaitTimer = 0f;
+
         // Queue Info
         private int _queueIndex = -1;
 
@@ -82,6 +92,16 @@ namespace Script.Environment
 
             ResolveSceneReferences();
             HideUI();
+        }
+
+        /// <summary>
+        /// Called by NPCSpawner after Instantiate to push day-filtered orders
+        /// into this NPC before Start() picks the random order.
+        /// </summary>
+        public void SetOrders(List<PotionRecipe> orders)
+        {
+            if (orders != null && orders.Count > 0)
+                availableOrders = new List<PotionRecipe>(orders);
         }
 
         private void Start()
@@ -104,7 +124,6 @@ namespace Script.Environment
         private void OnDisable()
         {
             DoorAnimation.OnDoorOpened -= HandleDoorOpened;
-            RemoveButtonListeners(); // Clean up listeners if destroyed
         }
 
         // -------------------------------------------------------------------
@@ -195,10 +214,12 @@ namespace Script.Environment
             _state = NPCState.WalkingToCounter;
             PlayAnim(walkAnim);
 
+            float currentStoppingDist = stoppingDistance;
             Vector3 targetPosition = _counterWaypoint.position;
             if (QueueManager.Instance != null && QueueManager.Instance.isActiveAndEnabled)
             {
                 targetPosition = QueueManager.Instance.JoinQueue(this);
+                currentStoppingDist = 0.1f; // Needs to be tight for line spacing
             }
 
             // Poll path validity (handles closed doors)
@@ -207,7 +228,7 @@ namespace Script.Environment
                 NavMeshPath path = new NavMeshPath();
                 if (_agent.CalculatePath(targetPosition, path) && path.status == NavMeshPathStatus.PathComplete)
                 {
-                    _agent.stoppingDistance = stoppingDistance;
+                    _agent.stoppingDistance = currentStoppingDist;
                     _agent.SetPath(path);
                     break;
                 }
@@ -217,10 +238,12 @@ namespace Script.Environment
 
         private void Update()
         {
+            // ─── 1. Core Navigation & State Machine ───
             // Check arrival at counter or spot in line
             if (_state == NPCState.WalkingToCounter || _state == NPCState.WaitingInLine)
             {
-                if (!_agent.pathPending && _agent.remainingDistance <= stoppingDistance)
+                // We add _agent.hasPath so we don't accidentally "arrive" instantly on the exact frame the NPC spawns before the path computes
+                if (_agent.hasPath && !_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance + 0.1f)
                 {
                     _agent.ResetPath(); // Stop moving
                     
@@ -247,11 +270,52 @@ namespace Script.Environment
             // Check arrival at exit
             else if (_state == NPCState.Leaving)
             {
+                // Ensure we are physically near the exit waypoint, avoiding instant despawn if the NavMesh path hasn't fully calculated yet
                 if (!_agent.pathPending && _agent.remainingDistance <= 0.5f)
                 {
-                    Destroy(gameObject); // Despawn
+                    if (_exitWaypoint == null || Vector3.Distance(transform.position, _exitWaypoint.position) <= 2.0f)
+                    {
+                        Destroy(gameObject); // Despawn
+                    }
                 }
             }
+            
+            // ─── 2. Patience Timers ───
+            if (_state == NPCState.WaitingInLine || _state == NPCState.WaitingForOrder)
+            {
+                _currentWaitTimer += Time.deltaTime;
+                if (_currentWaitTimer >= waitTimeInLine)
+                {
+                    HandleImpatientLeaveRoutine(false);
+                }
+            }
+            else if (_state == NPCState.WaitingForPotion)
+            {
+                _currentWaitTimer += Time.deltaTime;
+                if (_currentWaitTimer >= waitTimeForPotion)
+                {
+                    HandleImpatientLeaveRoutine(true);
+                }
+            }
+        }
+
+        private void HandleImpatientLeaveRoutine(bool decreaseGlory)
+        {
+            if (_state == NPCState.Leaving) return; // Prevent double trigger
+            
+            _state = NPCState.Leaving;
+            
+            if (decreaseGlory && _currentOrder != null && ShopManager.Instance != null)
+            {
+                ShopManager.Instance.RemoveGlory(_currentOrder.gloryPenalty);
+            }
+
+            // Immediately force walk and hide dialog
+            if (_agent != null && _agent.isOnNavMesh) _agent.isStopped = false;
+            
+            RemoveButtonListeners();
+            HideUI(); // Ensure UI is hidden if they were waiting at the counter
+            StartCoroutine(LeaveRoutine(0f)); // Leave immediately, no delay
         }
 
         private void HandleDoorOpened()
@@ -278,6 +342,8 @@ namespace Script.Environment
 
         public void Interact(PlayerInteraction player)
         {
+            if (AudioManager.Instance != null) AudioManager.Instance.PlayNPCTalk();
+            
             Debug.Log($"[NPC] Interact called by Player. Current State: {_state}. Distance: {Vector3.Distance(transform.position, player.transform.position):F2}");
 
             if (_state == NPCState.WalkingToCounter || _state == NPCState.WaitingForOrder)
@@ -333,7 +399,11 @@ namespace Script.Environment
 
         private void OnAcceptOrder()
         {
+            Script.Systems.TutorialManager.NotifyStep(Script.Systems.TutorialManager.TutorialEvent.NPCOrderAccepted);
             RemoveButtonListeners();
+            
+            // Player accepted the order, reset timer for the potion delivery phase
+            _currentWaitTimer = 0f;
 
             if (_questTitleText != null && _currentOrder != null)
             {
@@ -482,7 +552,15 @@ namespace Script.Environment
             if (_exitWaypoint != null)
             {
                 _agent.stoppingDistance = 0f;
-                _agent.SetDestination(_exitWaypoint.position);
+                if (_agent != null && _agent.isActiveAndEnabled && _agent.isOnNavMesh)
+                {
+                    _agent.SetDestination(_exitWaypoint.position);
+                }
+                else
+                {
+                    Debug.LogWarning("[NPC] Agent is not active or not on NavMesh. Destroying immediately.");
+                    Destroy(gameObject);
+                }
             }
             else
             {
@@ -513,6 +591,7 @@ namespace Script.Environment
         private void HideUI()
         {
             if (_dialoguePanel != null) _dialoguePanel.SetActive(false);
+            RemoveButtonListeners(); // Clean up so this NPC doesn't intercept clicks after closing
         }
 
         // -------------------------------------------------------------------
@@ -544,6 +623,7 @@ namespace Script.Environment
                 _state = NPCState.WaitingInLine; 
                 if (_agent != null && _agent.isOnNavMesh)
                 {
+                    _agent.stoppingDistance = 0.1f; // Force precise movement to new queue spot
                     _agent.isStopped = false;
                     _agent.SetDestination(newPosition);
                     PlayAnim(walkAnim);
@@ -552,5 +632,41 @@ namespace Script.Environment
         }
 
         #endregion
+
+        // -------------------------------------------------------------------
+        // Patience UI Helpers
+        // -------------------------------------------------------------------
+        
+        /// <summary>
+        /// Returns a value between 0.0 to 1.0 representing how much patience the NPC has left.
+        /// (1.0 = Full Patience, 0.0 = Very impatient, about to walk out)
+        /// </summary>
+        public float GetWaitPercentage()
+        {
+            if (_state == NPCState.WaitingInLine || _state == NPCState.WaitingForOrder)
+            {
+                float left = 1f - (_currentWaitTimer / waitTimeInLine);
+                return Mathf.Clamp01(left);
+            }
+            if (_state == NPCState.WaitingForPotion)
+            {
+                float left = 1f - (_currentWaitTimer / waitTimeForPotion);
+                return Mathf.Clamp01(left);
+            }
+            
+            return 1f;
+        }
+
+        /// <summary>
+        /// True if the NPC is actively tracking a patience timer.
+        /// </summary>
+        public bool IsWaiting()
+        {
+            return _state == NPCState.WaitingInLine || 
+                   _state == NPCState.WaitingForOrder || 
+                   _state == NPCState.WaitingForPotion;
+        }
+
     }
 }
+

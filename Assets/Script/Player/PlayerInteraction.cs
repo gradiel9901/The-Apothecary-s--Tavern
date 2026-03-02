@@ -1,4 +1,5 @@
 using Script.Environment;
+using Script.Systems;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -151,6 +152,35 @@ namespace Script.Player
                 {
                     TryReplenishShelf();
                 }
+                else
+                {
+                    TryMixCauldron();
+                }
+            }
+        }
+        
+        private void TryMixCauldron()
+        {
+            Collider[] colliders = Physics.OverlapSphere(transform.position, interactionRange);
+            Cauldron closestCauldron = null;
+            float closestDistance = float.MaxValue;
+
+            foreach (var collider in colliders)
+            {
+                if (collider.TryGetComponent(out Cauldron cauldron))
+                {
+                    float distance = Vector3.Distance(transform.position, collider.transform.position);
+                    if (distance < closestDistance)
+                    {
+                        closestDistance = distance;
+                        closestCauldron = cauldron;
+                    }
+                }
+            }
+
+            if (closestCauldron != null)
+            {
+                closestCauldron.Mix(this);
             }
         }
         
@@ -186,6 +216,8 @@ namespace Script.Player
 
         public void PickUpItem(ItemType item, GameObject prefab)
         {
+            if (AudioManager.Instance != null) AudioManager.Instance.PlayItemPickup();
+            
             _heldItem = item;
             Debug.Log($"Player is now holding: {_heldItem}");
 
@@ -220,6 +252,8 @@ namespace Script.Player
             // Drop current held sack if holding one
             if (_heldSack != null) DropSack();
 
+            if (AudioManager.Instance != null) AudioManager.Instance.PlayItemPickup();
+
             _heldSack = sack;
             Debug.Log($"Player is now holding SACK: {_heldSack.itemType} x{_heldSack.amount}");
 
@@ -241,6 +275,8 @@ namespace Script.Player
         {
             if (_heldSack == null) return;
 
+            if (AudioManager.Instance != null) AudioManager.Instance.PlayItemDrop();
+            
             Debug.Log("Player dropped SACK.");
             
             _heldSack.transform.SetParent(null);
@@ -277,6 +313,8 @@ namespace Script.Player
 
         public void DropItem()
         {
+            if (AudioManager.Instance != null) AudioManager.Instance.PlayItemDrop();
+            
             _heldItem = null;
             Debug.Log("Player dropped item.");
 
@@ -296,5 +334,13 @@ namespace Script.Player
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(transform.position, interactionRange);
         }
+
+        public float GetInteractionRange() => interactionRange;
+        public bool IsHoldingSack() => _heldSack != null;
+
+        public string GetInteractableTag() => interactableTag;
+        public string GetMultiInteractTag() => multiInteractTag;
+        public string GetNpcTag() => npcTag;
+        public string GetSackTag() => sackTag;
     }
 }

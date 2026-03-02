@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Script.Player;
+using Script.Systems;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -44,13 +45,22 @@ namespace Script.Environment
 
         public void Interact(PlayerInteraction player)
         {
+            Script.Systems.TutorialManager.NotifyStep(Script.Systems.TutorialManager.TutorialEvent.CauldronStarted);
             if (_isMixing)
             {
-                HandleMixingInput(player);
+                Debug.Log("Cauldron is mixing! Use F to mix.");
             }
             else
             {
                 HandleIngredientInput(player);
+            }
+        }
+
+        public void Mix(PlayerInteraction player)
+        {
+            if (_isMixing)
+            {
+                HandleMixingInput(player);
             }
         }
 
@@ -97,6 +107,7 @@ namespace Script.Environment
             
             if (!matchFound && !potentialMatchFound)
             {
+                if (AudioManager.Instance != null) AudioManager.Instance.PlayMixMiss();
                 TriggerFailure("Invalid mixture! Ingredients wasted.");
             }
         }
@@ -117,6 +128,8 @@ namespace Script.Environment
                 progressBar.gameObject.SetActive(true);
                 progressBar.value = 0;
             }
+            
+            if (AudioManager.Instance != null) AudioManager.Instance.PlayBubbling();
             
             Debug.Log("Mixing Started! Watch the light.");
         }
@@ -165,14 +178,20 @@ namespace Script.Environment
         {
             if (_isLightOn)
             {
+            Script.Systems.TutorialManager.NotifyStep(Script.Systems.TutorialManager.TutorialEvent.CauldronLightHit);
                 // Correct Input
                 float progressGain = Random.Range(minProgress, maxProgress);
                 
                 // Critical Success Check
                 if (Random.value < instantCompleteChance)
                 {
+                    if (AudioManager.Instance != null) AudioManager.Instance.PlayMixCrit();
                     progressGain = 100f;
                     Debug.Log("CRITICAL MIX! Instant Success!");
+                }
+                else
+                {
+                    if (AudioManager.Instance != null) AudioManager.Instance.PlayMixHit();
                 }
 
                 _currentProgress += progressGain;
@@ -188,6 +207,8 @@ namespace Script.Environment
             {
                 // Wrong Input
                 Debug.Log("Wrong Timing!");
+                if (AudioManager.Instance != null) AudioManager.Instance.PlayMixMiss();
+
                 if (_currentProgress > 0)
                 {
                     _currentProgress -= 10f;
@@ -231,6 +252,8 @@ namespace Script.Environment
             _currentProgress = 0f;
             _failuresAtZero = 0;
             
+            if (AudioManager.Instance != null) AudioManager.Instance.StopBubbling();
+            
             if (progressBar != null) progressBar.gameObject.SetActive(false);
             if (mixingLight != null) mixingLight.intensity = 0;
         }
@@ -246,3 +269,5 @@ namespace Script.Environment
         }
     }
 }
+
+

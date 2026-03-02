@@ -153,7 +153,7 @@ namespace Script.Environment
         private void UpdateUI()
         {
             if (currencyText != null)
-                currencyText.text = $"Gold: {Currency}";
+                currencyText.text = $" {Currency}";
 
             if (multiplierText != null)
                 multiplierText.text = $"x{CurrentMultiplier}";
