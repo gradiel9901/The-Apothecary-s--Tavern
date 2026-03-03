@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro; // Add TextMeshPro
 using Script.Player; // For cursor locking
+using UnityEngine.InputSystem;
 
 namespace Script.UI
 {
@@ -41,6 +42,15 @@ namespace Script.UI
             }
 
             RefreshShopUI();
+        }
+
+        private void Update()
+        {
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                Script.UI.PauseManager.ConsumedEscapeThisFrame = true;
+                CloseShop();
+            }
         }
 
         private void RefreshShopUI()

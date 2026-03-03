@@ -110,6 +110,21 @@ namespace Script.Environment
             UpdateUI();
         }
 
+        public void SkipWorkingHours()
+        {
+            if (IsWorkingHours)
+            {
+                _workingTimeRemaining = 0;
+            }
+        }
+
+        public void AdjustWorkingDuration(float minutesChange)
+        {
+            workingDurationMinutes += minutesChange;
+            if (workingDurationMinutes < 1f) workingDurationMinutes = 1f; // Prevent going below 1 minute
+            Debug.Log($"[Developer] Working duration is now {workingDurationMinutes} minutes.");
+        }
+
         public void EndDay()
         {
             CurrentDay++;

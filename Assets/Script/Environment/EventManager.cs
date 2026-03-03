@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Script.Systems;
+using UnityEngine.InputSystem;
 
 namespace Script.Environment
 {
@@ -69,6 +70,16 @@ namespace Script.Environment
 
         private void Update()
         {
+            // Close event panel with ESC if it is open
+            if (eventUIPanel != null && eventUIPanel.activeSelf)
+            {
+                if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+                {
+                    Script.UI.PauseManager.ConsumedEscapeThisFrame = true;
+                    UI_CloseEventPanel();
+                }
+            }
+
             // Only rot items while the shop is open and time is actively ticking
             if (DayCycleManager.Instance != null && DayCycleManager.Instance.IsWorkingHours)
             {

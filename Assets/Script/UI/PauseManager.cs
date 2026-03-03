@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 namespace Script.UI
 {
+    [DefaultExecutionOrder(100)]
     public class PauseManager : MonoBehaviour
     {
         [Header("UI References")]
@@ -38,7 +39,32 @@ namespace Script.UI
             // Check for Escape key press
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
+                // To prevent the Pause Menu from opening when the player is closing 
+                // another UI (like the Shop or Event panel), we must check if any 
+                // other script just handled the Escape key this frame.
+                if (ConsumedEscapeThisFrame)
+                {
+                    return; // Skip pausing, another UI just closed
+                }
+
                 TogglePause();
+            }
+
+            // Reset the flag manually at the end of the frame in LateUpdate or wait
+            if (ConsumedEscapeThisFrame && Keyboard.current != null && !Keyboard.current.escapeKey.isPressed)
+            {
+               ConsumedEscapeThisFrame = false;
+            }
+        }
+
+        // A static flag that other scripts can set to true when they close via ESC
+        public static bool ConsumedEscapeThisFrame = false;
+
+        private void LateUpdate()
+        {
+            if (ConsumedEscapeThisFrame && Keyboard.current != null && !Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                ConsumedEscapeThisFrame = false;
             }
         }
 
